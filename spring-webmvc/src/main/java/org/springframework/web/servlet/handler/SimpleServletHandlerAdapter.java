@@ -54,6 +54,7 @@ import org.springframework.web.servlet.ModelAndView;
  */
 public class SimpleServletHandlerAdapter implements HandlerAdapter {
 
+	//判断handler是否实现Servlet接口
 	@Override
 	public boolean supports(Object handler) {
 		return (handler instanceof Servlet);

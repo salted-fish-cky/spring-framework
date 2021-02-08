@@ -212,11 +212,13 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	 * @see #handlerMethodsInitialized
 	 */
 	protected void initHandlerMethods() {
+		// 获取上下文中所有bean的name，不包含父容器
 		for (String beanName : getCandidateBeanNames()) {
 			if (!beanName.startsWith(SCOPED_TARGET_NAME_PREFIX)) {
 				processCandidateBean(beanName);
 			}
 		}
+		// 日志记录HandlerMethods的总数量
 		handlerMethodsInitialized(getHandlerMethods());
 	}
 
@@ -246,6 +248,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 	protected void processCandidateBean(String beanName) {
 		Class<?> beanType = null;
 		try {
+			// 根据name找出bean的类型
 			beanType = obtainApplicationContext().getType(beanName);
 		}
 		catch (Throwable ex) {
@@ -254,25 +257,31 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace("Could not resolve type for bean '" + beanName + "'", ex);
 			}
 		}
+		// 处理Controller和RequestMapping
 		if (beanType != null && isHandler(beanType)) {
 			detectHandlerMethods(beanName);
 		}
 	}
 
 	/**
+	 * 整个controller类的解析过程
 	 * Look for handler methods in the specified handler bean.
 	 * @param handler either a bean name or an actual handler instance
 	 * @see #getMappingForMethod
 	 */
 	protected void detectHandlerMethods(Object handler) {
+		// 根据name找出bean的类型
 		Class<?> handlerType = (handler instanceof String ?
 				obtainApplicationContext().getType((String) handler) : handler.getClass());
 
 		if (handlerType != null) {
+			// 获取真实的controller，如果是代理类获取父类
 			Class<?> userType = ClassUtils.getUserClass(handlerType);
+			//对真实的controller所有的方法进行解析和处理  key为方法对象，T为注解封装后的对象RequestMappingInfo
 			Map<Method, T> methods = MethodIntrospector.selectMethods(userType,
 					(MethodIntrospector.MetadataLookup<T>) method -> {
 						try {
+							// 调用子类RequestMappingHandlerMapping的getMappingForMethod方法进行处理，即根据RequestMapping注解信息创建匹配条件RequestMappingInfo对象
 							return getMappingForMethod(method, userType);
 						}
 						catch (Throwable ex) {
@@ -284,7 +293,9 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 				logger.trace(formatMappings(userType, methods));
 			}
 			methods.forEach((method, mapping) -> {
+				//找出controller中可外部调用的方法
 				Method invocableMethod = AopUtils.selectInvocableMethod(method, userType);
+				//注册处理方法
 				registerHandlerMethod(handler, invocableMethod, mapping);
 			});
 		}
@@ -588,6 +599,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			this.readWriteLock.readLock().unlock();
 		}
 
+		// mapping是RequestMappingInfo对象   handler是controller类的beanName   method为接口方法
 		public void register(T mapping, Object handler, Method method) {
 			// Assert that the handler method is not a suspending one.
 			if (KotlinDetector.isKotlinType(method.getDeclaringClass()) && KotlinDelegate.isSuspend(method)) {
@@ -595,18 +607,24 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 			}
 			this.readWriteLock.writeLock().lock();
 			try {
+				// beanName和method封装成HandlerMethod对象
 				HandlerMethod handlerMethod = createHandlerMethod(handler, method);
+				// 验证RequestMappingInfo是否有对应不同的method，有则抛出异常
 				validateMethodMapping(handlerMethod, mapping);
+				// RequestMappingInfo和handlerMethod绑定
 				this.mappingLookup.put(mapping, handlerMethod);
 
+				// 可以配置多个url
 				List<String> directUrls = getDirectUrls(mapping);
 				for (String url : directUrls) {
+					// url和RequestMappingInfo绑定   可以根据url找到RequestMappingInfo，再找到handlerMethod
 					this.urlLookup.add(url, mapping);
 				}
 
 				String name = null;
 				if (getNamingStrategy() != null) {
 					name = getNamingStrategy().getName(handlerMethod, mapping);
+					// 方法名和Method绑定
 					addMappingName(name, handlerMethod);
 				}
 
@@ -615,6 +633,7 @@ public abstract class AbstractHandlerMethodMapping<T> extends AbstractHandlerMap
 					this.corsLookup.put(handlerMethod, corsConfig);
 				}
 
+				// 将RequestMappingInfo  url  handlerMethod绑定到MappingRegistration对象  放入map
 				this.registry.put(mapping, new MappingRegistration<>(mapping, handlerMethod, directUrls, name));
 			}
 			finally {

@@ -496,17 +496,25 @@ public class DispatcherServlet extends FrameworkServlet {
 	}
 
 	/**
+	 * //初始化九大核心组件
 	 * Initialize the strategy objects that this servlet uses.
 	 * <p>May be overridden in subclasses in order to initialize further strategy objects.
 	 */
 	protected void initStrategies(ApplicationContext context) {
+		// 文件上传解析
 		initMultipartResolver(context);
+		// 本地解析
 		initLocaleResolver(context);
+		// 主题解析
 		initThemeResolver(context);
+		//url请求映射
 		initHandlerMappings(context);
+		// 初始化真正调用Controller方法的类
 		initHandlerAdapters(context);
+		// 异常解析
 		initHandlerExceptionResolvers(context);
 		initRequestToViewNameTranslator(context);
+		// 视图解析
 		initViewResolvers(context);
 		initFlashMapManager(context);
 	}
@@ -593,19 +601,22 @@ public class DispatcherServlet extends FrameworkServlet {
 	private void initHandlerMappings(ApplicationContext context) {
 		this.handlerMappings = null;
 
+		// 默认为true，可通过DispatcherServlet的init-param参数进行设置
 		if (this.detectAllHandlerMappings) {
-			// Find all HandlerMappings in the ApplicationContext, including ancestor contexts.
+			// 在ApplicationContext中找到所有的handlerMapping, 包括父级上下文
 			Map<String, HandlerMapping> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerMapping.class, true, false);
 			if (!matchingBeans.isEmpty()) {
 				this.handlerMappings = new ArrayList<>(matchingBeans.values());
-				// We keep HandlerMappings in sorted order.
+				// 排序，可通过指定order属性进行设置，order的值为int型，数越小优先级越高
 				AnnotationAwareOrderComparator.sort(this.handlerMappings);
 			}
 		}
 		else {
 			try {
+				// 从ApplicationContext中取id（或name）="handlerMapping"的bean,此时为空
 				HandlerMapping hm = context.getBean(HANDLER_MAPPING_BEAN_NAME, HandlerMapping.class);
+				// 将hm转换成list，并赋值给属性handlerMappings
 				this.handlerMappings = Collections.singletonList(hm);
 			}
 			catch (NoSuchBeanDefinitionException ex) {
@@ -613,9 +624,12 @@ public class DispatcherServlet extends FrameworkServlet {
 			}
 		}
 
-		// Ensure we have at least one HandlerMapping, by registering
-		// a default HandlerMapping if no other mappings are found.
+		// 如果没有自定义则使用默认的handlerMappings
+		// 默认的HandlerMapping在DispatcherServlet.properties属性文件中定义，
+		// 该文件是在DispatcherServlet的static静态代码块中加载的
+		// 默认的是：BeanNameUrlHandlerMapping和RequestMappingHandlerMapping
 		if (this.handlerMappings == null) {
+			// 默认策略
 			this.handlerMappings = getDefaultStrategies(context, HandlerMapping.class);
 			if (logger.isTraceEnabled()) {
 				logger.trace("No HandlerMappings declared for servlet '" + getServletName() +
@@ -633,7 +647,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		this.handlerAdapters = null;
 
 		if (this.detectAllHandlerAdapters) {
-			// Find all HandlerAdapters in the ApplicationContext, including ancestor contexts.
+			// 从应用上下文中查找HandlerAdapter
 			Map<String, HandlerAdapter> matchingBeans =
 					BeanFactoryUtils.beansOfTypeIncludingAncestors(context, HandlerAdapter.class, true, false);
 			if (!matchingBeans.isEmpty()) {
@@ -644,7 +658,9 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 		else {
 			try {
+				// 如果在web.xml配了detectAllHandlerAdapters=false，此时spring会加载名称为handlerAdapter的bean为处理器适配器
 				HandlerAdapter ha = context.getBean(HANDLER_ADAPTER_BEAN_NAME, HandlerAdapter.class);
+				// 转化为集合赋给handlerAdapters属性
 				this.handlerAdapters = Collections.singletonList(ha);
 			}
 			catch (NoSuchBeanDefinitionException ex) {
@@ -654,6 +670,7 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		// Ensure we have at least some HandlerAdapters, by registering
 		// default HandlerAdapters if no other adapters are found.
+		// 如果未配置，读取DispatcherServlet.properties中的HandlerAdapters,放入this.handlerAdapters
 		if (this.handlerAdapters == null) {
 			this.handlerAdapters = getDefaultStrategies(context, HandlerAdapter.class);
 			if (logger.isTraceEnabled()) {
@@ -859,13 +876,17 @@ public class DispatcherServlet extends FrameworkServlet {
 	@SuppressWarnings("unchecked")
 	protected <T> List<T> getDefaultStrategies(ApplicationContext context, Class<T> strategyInterface) {
 		String key = strategyInterface.getName();
+		// 获取HandlerMappings为key的value值,defaultStrategies在static块中读取DispatcherServlet.properties
 		String value = defaultStrategies.getProperty(key);
 		if (value != null) {
+			// 逗号，分割成数组
 			String[] classNames = StringUtils.commaDelimitedListToStringArray(value);
 			List<T> strategies = new ArrayList<>(classNames.length);
 			for (String className : classNames) {
 				try {
+					// 反射加载并存储strategies
 					Class<?> clazz = ClassUtils.forName(className, DispatcherServlet.class.getClassLoader());
+					// 通过容器创建bean 触发后置处理器
 					Object strategy = createDefaultStrategy(context, clazz);
 					strategies.add((T) strategy);
 				}
@@ -898,6 +919,7 @@ public class DispatcherServlet extends FrameworkServlet {
 	 * @see org.springframework.beans.factory.config.AutowireCapableBeanFactory#createBean
 	 */
 	protected Object createDefaultStrategy(ApplicationContext context, Class<?> clazz) {
+		// 通过容器创建bean
 		return context.getAutowireCapableBeanFactory().createBean(clazz);
 	}
 
@@ -914,6 +936,7 @@ public class DispatcherServlet extends FrameworkServlet {
 		// to be able to restore the original attributes after the include.
 		Map<String, Object> attributesSnapshot = null;
 		if (WebUtils.isIncludeRequest(request)) {
+			//保存request域中的数据,存一份快照
 			attributesSnapshot = new HashMap<>();
 			Enumeration<?> attrNames = request.getAttributeNames();
 			while (attrNames.hasMoreElements()) {
@@ -925,27 +948,36 @@ public class DispatcherServlet extends FrameworkServlet {
 		}
 
 		// Make framework objects available to handlers and view objects.
+		//设置web应用上下文
 		request.setAttribute(WEB_APPLICATION_CONTEXT_ATTRIBUTE, getWebApplicationContext());
+		//国际化本地
 		request.setAttribute(LOCALE_RESOLVER_ATTRIBUTE, this.localeResolver);
+		//样式
 		request.setAttribute(THEME_RESOLVER_ATTRIBUTE, this.themeResolver);
+		//设置样式资源
 		request.setAttribute(THEME_SOURCE_ATTRIBUTE, getThemeSource());
 
+		//请求刷新时保存属性
 		if (this.flashMapManager != null) {
 			FlashMap inputFlashMap = this.flashMapManager.retrieveAndUpdate(request, response);
 			if (inputFlashMap != null) {
 				request.setAttribute(INPUT_FLASH_MAP_ATTRIBUTE, Collections.unmodifiableMap(inputFlashMap));
 			}
+			//Flash attributes 在对请求的重定向生效之前被临时存储（通常是在session)中，并且在重定向之后被立即移除
 			request.setAttribute(OUTPUT_FLASH_MAP_ATTRIBUTE, new FlashMap());
+			//FlashMap 被用来管理 flash attributes 而 FlashMapManager 则被用来存储，获取和管理 FlashMap 实体
 			request.setAttribute(FLASH_MAP_MANAGER_ATTRIBUTE, this.flashMapManager);
 		}
 
 		try {
+			//核心方法
 			doDispatch(request, response);
 		}
 		finally {
 			if (!WebAsyncUtils.getAsyncManager(request).isConcurrentHandlingStarted()) {
 				// Restore the original attribute snapshot, in case of an include.
 				if (attributesSnapshot != null) {
+					//将快照覆盖回去
 					restoreAttributesAfterInclude(request, attributesSnapshot);
 				}
 			}
@@ -1009,10 +1041,12 @@ public class DispatcherServlet extends FrameworkServlet {
 			Exception dispatchException = null;
 
 			try {
+				// 将request转换成multipartRequest，并检查是否解析成功(判断是否有文件上传)
 				processedRequest = checkMultipart(request);
 				multipartRequestParsed = (processedRequest != request);
 
 				// Determine handler for the current request.
+				// 根据请求信息获取handler（包含了拦截器）
 				mappedHandler = getHandler(processedRequest);
 				if (mappedHandler == null) {
 					noHandlerFound(processedRequest, response);
@@ -1020,6 +1054,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				}
 
 				// Determine handler adapter for the current request.
+				// 根据handler获取adapter
 				HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
 
 				// Process last-modified header, if supported by the handler.
@@ -1032,18 +1067,22 @@ public class DispatcherServlet extends FrameworkServlet {
 					}
 				}
 
+				// 拦截器逻辑
 				if (!mappedHandler.applyPreHandle(processedRequest, response)) {
 					return;
 				}
 
 				// Actually invoke the handler.
+				// 执行业务处理，返回视图模型
 				mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
 
 				if (asyncManager.isConcurrentHandlingStarted()) {
 					return;
 				}
 
+				// 给视图模型设置viewName
 				applyDefaultViewName(processedRequest, mv);
+				// 拦截器逻辑
 				mappedHandler.applyPostHandle(processedRequest, response, mv);
 			}
 			catch (Exception ex) {
@@ -1054,6 +1093,7 @@ public class DispatcherServlet extends FrameworkServlet {
 				// making them available for @ExceptionHandler methods and other scenarios.
 				dispatchException = new NestedServletException("Handler dispatch failed", err);
 			}
+			// 处理请求结果,使用了组件LocaleResolver, ViewResolver和ThemeResolver(view#render)
 			processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
 		}
 		catch (Exception ex) {
@@ -1101,12 +1141,15 @@ public class DispatcherServlet extends FrameworkServlet {
 
 		boolean errorView = false;
 
+		// 异常处理
 		if (exception != null) {
+			// ModelAndViewDefiningException类型，会携带对应的ModelAndView
 			if (exception instanceof ModelAndViewDefiningException) {
 				logger.debug("ModelAndViewDefiningException encountered", exception);
 				mv = ((ModelAndViewDefiningException) exception).getModelAndView();
 			}
 			else {
+				// 由对应的处理器handler进行异常处理，返回ModelAndView。其中使用了HandlerExceptionResolver。
 				Object handler = (mappedHandler != null ? mappedHandler.getHandler() : null);
 				mv = processHandlerException(request, response, handler, exception);
 				errorView = (mv != null);

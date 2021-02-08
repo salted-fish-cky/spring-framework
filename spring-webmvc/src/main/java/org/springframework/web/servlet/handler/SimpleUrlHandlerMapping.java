@@ -58,6 +58,7 @@ import org.springframework.util.CollectionUtils;
  */
 public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
+	// 存储url和bean映射
 	private final Map<String, Object> urlMap = new LinkedHashMap<>();
 
 
@@ -94,6 +95,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 
 
 	/**
+	 * 注入property的name为mappings映射
 	 * Map URL paths to handler bean names.
 	 * This is the typical way of configuring this HandlerMapping.
 	 * <p>Supports direct URL matches and Ant-style pattern matches. For syntax
@@ -106,6 +108,7 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	}
 
 	/**
+	 * 注入property的name为urlMap映射
 	 * Set a Map with URL paths as keys and handler beans (or handler bean names)
 	 * as values. Convenient for population with bean references.
 	 * <p>Supports direct URL matches and Ant-style pattern matches. For syntax
@@ -135,11 +138,14 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 	 */
 	@Override
 	public void initApplicationContext() throws BeansException {
+		// 调用父类AbstractHandlerMapping的initApplicationContext方法，只要完成拦截器的注册
 		super.initApplicationContext();
+		// 处理url和bean name，具体注册调用父类完成
 		registerHandlers(this.urlMap);
 	}
 
 	/**
+	 * 注册映射关系，及将property中的值解析到map对象中，key为url，value为bean id或name
 	 * Register all handlers specified in the URL map for the corresponding paths.
 	 * @param urlMap a Map with URL paths as keys and handler beans or bean names as values
 	 * @throws BeansException if a handler couldn't be registered
@@ -151,14 +157,15 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
 		}
 		else {
 			urlMap.forEach((url, handler) -> {
-				// Prepend with slash if not already present.
+				// 增加以"/"开头
 				if (!url.startsWith("/")) {
 					url = "/" + url;
 				}
-				// Remove whitespace from handler bean name.
+				// 去除handler bean名称的空格
 				if (handler instanceof String) {
 					handler = ((String) handler).trim();
 				}
+				// 调用父类AbstractUrlHandlerMapping完成映射
 				registerHandler(url, handler);
 			});
 			if (logger.isDebugEnabled()) {
