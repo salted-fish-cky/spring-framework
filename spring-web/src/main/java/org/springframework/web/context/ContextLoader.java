@@ -248,6 +248,8 @@ public class ContextLoader {
 
 
 	/**
+	 * 创建和初始化spring主容器对应的WebApplicationContext对象实例并调用refresh方法
+	 * 完成从contextConfigLocation指定的配置中，加载BeanDefinitions和创建bean实例
 	 * Initialize Spring's web application context for the given servlet context,
 	 * using the application context provided at construction time, or creating a new one
 	 * according to the "{@link #CONTEXT_CLASS_PARAM contextClass}" and
@@ -259,6 +261,7 @@ public class ContextLoader {
 	 * @see #CONFIG_LOCATION_PARAM
 	 */
 	public WebApplicationContext initWebApplicationContext(ServletContext servletContext) {
+		// 判断是否已经有Root  WebApplicationContext，已经有则抛出异常
 		if (servletContext.getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE) != null) {
 			throw new IllegalStateException(
 					"Cannot initialize context because there is already a root application context present - " +
@@ -276,6 +279,7 @@ public class ContextLoader {
 			// Store context in local instance variable, to guarantee that
 			// it is available on ServletContext shutdown.
 			if (this.context == null) {
+				// 创建上下文对象  XmlWebApplicationContext(静态方法中从ContextLoader.properties文件中读取)  并赋值给全局变量context
 				this.context = createWebApplicationContext(servletContext);
 			}
 			if (this.context instanceof ConfigurableWebApplicationContext) {
@@ -283,15 +287,18 @@ public class ContextLoader {
 				if (!cwac.isActive()) {
 					// The context has not yet been refreshed -> provide services such as
 					// setting the parent context, setting the application context id, etc
+					// 设置父容器（如果有）
 					if (cwac.getParent() == null) {
 						// The context instance was injected without an explicit parent ->
 						// determine parent for root web application context, if any.
 						ApplicationContext parent = loadParentContext(servletContext);
 						cwac.setParent(parent);
 					}
+					//核心方法，完成配置加载，BeanDefinition定义和bean对象创建
 					configureAndRefreshWebApplicationContext(cwac, servletContext);
 				}
 			}
+			//ioc容器上下文设置到servlet上下文servletContext
 			servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, this.context);
 
 			ClassLoader ccl = Thread.currentThread().getContextClassLoader();
@@ -299,6 +306,7 @@ public class ContextLoader {
 				currentContext = this.context;
 			}
 			else if (ccl != null) {
+				//将当前类加载器和上下文绑定
 				currentContextPerThread.put(ccl, this.context);
 			}
 
@@ -384,6 +392,7 @@ public class ContextLoader {
 		}
 
 		wac.setServletContext(sc);
+		// 获取web.xml中的配置contextConfigLocation
 		String configLocationParam = sc.getInitParameter(CONFIG_LOCATION_PARAM);
 		if (configLocationParam != null) {
 			wac.setConfigLocation(configLocationParam);
@@ -397,7 +406,9 @@ public class ContextLoader {
 			((ConfigurableWebEnvironment) env).initPropertySources(sc, null);
 		}
 
+		// 使用ApplicationContextInitializer对ApplicationContext进行初始化
 		customizeContext(sc, wac);
+		// ApplicationContext的核心方法
 		wac.refresh();
 	}
 
