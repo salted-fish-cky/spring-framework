@@ -10,8 +10,8 @@ dependencies {
 	compile(project(":spring-expression"))
 	compile(project(":spring-web"))
 	compileOnly("javax.servlet:javax.servlet-api")
-	optional(project(":spring-context-support"))  // for FreeMarker support
-	optional(project(":spring-oxm"))
+	compile(project(":spring-context-support"))  // for FreeMarker support
+	compile(project(":spring-oxm"))
 	optional("javax.servlet.jsp:javax.servlet.jsp-api")
 	optional("javax.servlet.jsp.jstl:javax.servlet.jsp.jstl-api")
 	optional("javax.el:javax.el-api")

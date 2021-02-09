@@ -11,5 +11,7 @@ repositories {
 
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
-    compile(project(":spring-context"))
+    compile(project(":spring-webmvc"))
+    optional("org.apache.tomcat.embed:tomcat-embed-core:8.5.31")
+    optional "com.alibaba:fastjson:1.2.47"
 }
