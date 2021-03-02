@@ -38,7 +38,7 @@ public class MyWebApplicationInitializer implements WebApplicationInitializer {
         ServletRegistration.Dynamic registration = servletCxt.addServlet("app", servlet);
         registration.setLoadOnStartup(1);
 //        registration.setInitParameter("contextConfigLocation","spring mvc.xml 的地址");
-        registration.addMapping("*.do");
+        registration.addMapping("/*");
 		System.out.println("调用onStartup");
 }
 }

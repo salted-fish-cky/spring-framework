@@ -14,4 +14,6 @@ dependencies {
     compile(project(":spring-webmvc"))
     optional("org.apache.tomcat.embed:tomcat-embed-core:8.5.31")
     optional "com.alibaba:fastjson:1.2.47"
+    optional "org.aspectj:aspectjrt"
+    optional "org.aspectj:aspectjweaver"
 }
