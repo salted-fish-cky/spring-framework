@@ -16,4 +16,7 @@ dependencies {
     optional "com.alibaba:fastjson:1.2.47"
     optional "org.aspectj:aspectjrt"
     optional "org.aspectj:aspectjweaver"
+    // https://mvnrepository.com/artifact/mysql/mysql-connector-java
+    implementation group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'
+
 }

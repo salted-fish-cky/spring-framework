@@ -289,11 +289,11 @@ configure(allprojects) { project ->
 		repositories {
 
 			// 下面两行要注释就一起注释
-			mavenCentral()
-			maven { url "https://repo.spring.io/libs-spring-framework-build" }
+//			mavenCentral()
+//			maven { url "https://repo.spring.io/libs-spring-framework-build" }
 
 			// 切换成aliyun仓库， 注意如果切成aliyun，就把上面的两行注释掉
-//			maven() { url "http://maven.aliyun.com/nexus/content/groups/public/" }
+			maven() { url "http://maven.aliyun.com/nexus/content/groups/public/" }
 		}
 
 	}

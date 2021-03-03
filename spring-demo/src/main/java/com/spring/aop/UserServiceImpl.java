@@ -14,8 +14,10 @@
 
 package com.spring.aop;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Description：
@@ -27,13 +29,19 @@ import org.springframework.util.StringUtils;
 public class UserServiceImpl implements UserService {
 
 	String name;
+
+	@Autowired
+	private JdbcTemplate jdbcTemplate;
+
+	@Transactional
 	@Override
 	public String getName() {
-		return StringUtils.isEmpty(name) ? "cky" : name;
+		return jdbcTemplate.queryForObject("select name from user where id = 1", String.class);
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public void setName(String name) {
-		this.name = name;
+		jdbcTemplate.update("update user set name = ? where id = 1", name);
 	}
 }

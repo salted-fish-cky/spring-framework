@@ -17,6 +17,7 @@ package com.spring.aop;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 /**
  * Description：
@@ -26,6 +27,7 @@ import org.springframework.context.annotation.EnableAspectJAutoProxy;
  */
 @ComponentScan(basePackages = "com.spring.aop")
 @EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableTransactionManagement
 public class App {
 
 	public static void main(String[] args) {
