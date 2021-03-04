@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
  * @since 2021/3/2
  */
 @ComponentScan(basePackages = "com.spring.aop")
-@EnableAspectJAutoProxy(proxyTargetClass = true)
+@EnableAspectJAutoProxy
 @EnableTransactionManagement
 public class App {
 
@@ -34,7 +34,6 @@ public class App {
 		AnnotationConfigApplicationContext applicationContext =
 				new AnnotationConfigApplicationContext(App.class);
 		UserService bean = applicationContext.getBean(UserService.class);
-		bean.setName("zz");
-		System.out.println(bean.getName());
+		System.out.println(bean.setName("zz"));
 	}
 }

@@ -20,5 +20,5 @@ public interface UserService {
 
 	String getName();
 
-	void setName(String name);
+	String setName(String name);
 }

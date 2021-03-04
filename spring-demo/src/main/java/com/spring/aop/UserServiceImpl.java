@@ -33,7 +33,7 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
-	@Transactional
+	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public String getName() {
 		return jdbcTemplate.queryForObject("select name from user where id = 1", String.class);
@@ -41,7 +41,8 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional(rollbackFor = Exception.class)
 	@Override
-	public void setName(String name) {
+	public String setName(String name) {
 		jdbcTemplate.update("update user set name = ? where id = 1", name);
+		return getName();
 	}
 }
