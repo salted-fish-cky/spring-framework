@@ -233,6 +233,10 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 		return obtainDataSource();
 	}
 
+	/**
+	 * 获取事务，实现自AbstractPlatformTransactionManager中的模板方法
+	 * @return
+	 */
 	@Override
 	protected Object doGetTransaction() {
 		DataSourceTransactionObject txObject = new DataSourceTransactionObject();
@@ -252,6 +256,8 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 	}
 
 	/**
+	 * 构造transaction，包括设置ConnectionHolder、隔离级别、timeout
+	 * 如果是新连接，绑定到当前线程
 	 * This implementation sets the isolation level but ignores the timeout.
 	 */
 	@Override
@@ -295,7 +301,9 @@ public class DataSourceTransactionManager extends AbstractPlatformTransactionMan
 				con.setAutoCommit(false);
 			}
 
+			// 只读事务
 			prepareTransactionalConnection(con, definition);
+			// 设置判断当前线程是否存在事务的依据，标识当前连接已经被事务激活
 			txObject.getConnectionHolder().setTransactionActive(true);
 
 			// 设置数据库连接的超时时间
