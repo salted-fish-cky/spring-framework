@@ -32,7 +32,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class MethondIntercetor {
 
-	@Pointcut("execution(public * com.spring.aop.UserServiceImpl.*(..)))")
+	@Pointcut("execution(public * com.spring.aop.service.*.*(..)))")
 	public void pointCut() {
 
 	}

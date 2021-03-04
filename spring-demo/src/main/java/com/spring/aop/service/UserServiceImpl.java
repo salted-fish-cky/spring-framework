@@ -12,7 +12,7 @@
  *
  */
 
-package com.spring.aop;
+package com.spring.aop.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -33,6 +33,9 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
+	@Autowired
+	private UserService userService2;
+
 	@Transactional(rollbackFor = Exception.class)
 	@Override
 	public String getName() {
@@ -43,6 +46,6 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public String setName(String name) {
 		jdbcTemplate.update("update user set name = ? where id = 1", name);
-		return getName();
+		return userService2.getName();
 	}
 }

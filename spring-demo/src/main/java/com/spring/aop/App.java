@@ -14,6 +14,7 @@
 
 package com.spring.aop;
 
+import com.spring.aop.service.UserService;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -33,7 +34,7 @@ public class App {
 	public static void main(String[] args) {
 		AnnotationConfigApplicationContext applicationContext =
 				new AnnotationConfigApplicationContext(App.class);
-		UserService bean = applicationContext.getBean(UserService.class);
+		UserService bean = (UserService) applicationContext.getBean("userService");
 		System.out.println(bean.setName("zz"));
 	}
 }
