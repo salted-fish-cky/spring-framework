@@ -4,7 +4,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.startup.Tomcat;
 
-public class App {
+public class Appliction {
 
     public static void main(String[] args) throws Exception {
         Tomcat tomcat = new Tomcat();

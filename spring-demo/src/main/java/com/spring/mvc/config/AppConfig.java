@@ -1,7 +1,10 @@
 package com.spring.mvc.config;
 
 import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
+import com.spring.mvc.handler.StaticResourceHandlerAdapter;
+import com.spring.mvc.handler.StaticResourceHandlerMapping;
 import java.util.List;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
@@ -10,7 +13,9 @@ import org.springframework.validation.MessageCodesResolver;
 import org.springframework.validation.Validator;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.HandlerMethodReturnValueHandler;
+import org.springframework.web.servlet.HandlerAdapter;
 import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.config.annotation.AsyncSupportConfigurer;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -139,5 +144,14 @@ public class AppConfig implements WebMvcConfigurer  {
 //    }
 
 
+	@Bean
+	public HandlerAdapter staticResourceHandlerAdapter() {
+		return new StaticResourceHandlerAdapter();
+	}
+
+	@Bean
+	public HandlerMapping staticResourceHandlerMapping() {
+		return new StaticResourceHandlerMapping();
+	}
 
 }
